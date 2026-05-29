@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^5.0.4",
+    "@astrojs/sitemap": "^3.7.3",
     "@astrojs/vue": "^6.0.1",
     "@nanostores/vue": "^1.1.0",
     "@portabletext/to-html": "^5.0.2",
