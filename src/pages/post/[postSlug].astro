@@ -1,0 +1,91 @@
+---
+import type { GetStaticPaths } from "astro";
+import MainLayout from "../../layouts/MainLayout.astro";
+import { sanityClient } from '../../lib/sanity.ts';
+import { urlForImage } from '../../lib/url-for-image.ts';
+import BlogHero from '../../components/BlogHero.vue';
+import { renderPortableText } from '../../lib/portable-text.ts';
+import { renderImageBlock } from '../../lib/portable-image.ts';
+
+export async function getStaticPaths() {
+  const posts = await sanityClient.fetch(`
+    *[_type == "post"] {
+      "params": { "postSlug": slug.current }
+    }
+  `);
+
+  return posts.map((post: any) => ({
+    params: post.params,
+  }));
+}
+
+const { postSlug } = Astro.params;
+
+const post = await sanityClient.fetch(`
+  *[_type == "post" && slug.current == $slug][0] {
+    _id,
+    slug,
+    "heroBlock": pageBlocks[_type == "heroBlock"][0],
+    pageBlocks[] {
+      _type,
+      _key,
+      ...,
+      _type == "textBlock" => {
+        content
+      },
+      _type == "imageBlock" => {
+        image,
+        caption,
+        altText
+      }
+    },
+    "categoryTitle": category->title,
+    "categorySlug": category->slug.current,
+    seo {
+      metaTitle,
+      metaDescription,
+      ogImage
+    }
+  }
+`, { slug: postSlug });
+
+
+  const metaTitle = post.seo?.metaTitle || post.heroBlock?.title;
+  const metaDescription = post.seo?.metaDescription || post.heroBlock?.subtitle;
+  const ogImage = post.seo?.ogImage ? urlForImage(post.seo.ogImage).width(1200).height(630).url() : urlForImage(post.heroBlock.image).width(1200).height(630).url();
+  const canonicalUrl = `https://austincaron.com/post/${post.slug.current}`;
+  const postUrl = `https://austincaron.com/post/${post.slug.current}`;
+
+---
+
+<MainLayout
+  title={metaTitle}
+  description={metaDescription}
+  ogTitle={metaTitle}
+  ogDescription={metaDescription}
+  ogImage={ogImage}
+  ogUrl={postUrl}
+  canonicalUrl={canonicalUrl}
+>
+  <article class="max-w-[1500px] mx-auto">
+    <BlogHero
+      heroBlock={post.heroBlock}
+    />
+    {post.pageBlocks.map((block: any) => {
+  if (block._type === 'imageBlock') {
+    console.log('Image block:', JSON.stringify(block, null, 2));
+    console.log('Block.image:', JSON.stringify(block.image, null, 2));
+  }
+  return (
+    <>
+      {block._type === 'textBlock' && block.content && (
+        <div set:html={renderPortableText(block.content)}></div>
+      )}
+      {block._type === 'imageBlock' && block.image && (
+        <div set:html={renderImageBlock(block)}></div>
+      )}
+    </>
+  );
+})}
+  </article>
+</MainLayout>

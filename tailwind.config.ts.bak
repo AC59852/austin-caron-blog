@@ -1,0 +1,16 @@
+import type { Config } from 'tailwindcss';
+
+export default {
+  theme: {
+    fontFamily: {
+      sans: ['Heebo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
+
+    extend: {
+      colors: {
+        'blue-primary': '#86B4FA',
+        'text-primary': '#383838',
+      },
+    }
+  }
+} satisfies Config;

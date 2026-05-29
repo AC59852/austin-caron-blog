@@ -11,11 +11,11 @@ export const post = defineType({
   ],
   fields: [
     // Standard Content Fields
-    defineField({ name: 'splashImage', type: 'image', title: 'Splash Image', group: 'content', options: { hotspot: true } }),
-    defineField({ name: 'title', type: 'string', group: 'content' }),
-    defineField({ name: 'slug', type: 'slug', group: 'content', options: { source: 'title' } }),
-    defineField({ name: 'body', type: 'array', title: 'Body', group: 'content', of: [{ type: 'block' }] }),
-    defineField({ name: 'publishedAt', type: 'datetime', title: 'Published At', group: 'content' }),
+    defineField({ name: 'slug', type: 'slug', group: 'content', options: { source: 'title' }, validation: (Rule) => Rule.required() }),
+
+    defineField({ name: 'category', type: 'reference', group: 'content', to: [{ type: 'category' }], validation: (Rule) => Rule.required() }),
+    
+    defineField({ name: 'pageBlocks', type: 'array', title: 'Page Content', group: 'content', of: [ { type: 'heroBlock' }, { type: 'textBlock' }, { type: 'imageBlock' } ] }),
     
     // SEO Fields
     defineField({

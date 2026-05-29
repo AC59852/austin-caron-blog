@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
-html {
-  background-color: blue;
+@theme {
+  --font-family-sans: "Heebo", ui-sans-serif, system-ui, sans-serif;
+  --color-blue-primary: #86B4FA;
+  --color-text-primary: #383838;
+  --breakpoint-3xl: 1950px;
+}
+
+@layer base {
+  :root {
+    --font-sans: "Heebo", ui-sans-serif, system-ui, sans-serif;
+  }
 }

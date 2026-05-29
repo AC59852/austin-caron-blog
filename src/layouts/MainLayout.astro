@@ -1,0 +1,83 @@
+---
+import NavButton from "../components/NavButton.vue";
+import NavMenu from "../components/NavMenu.vue";
+import "../styles/global.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	ogTitle?: string;
+	ogDescription?: string;
+	ogImage?: string;
+	ogUrl?: string;
+	canonicalUrl?: string;
+}
+
+const {
+	title = "Austin Caron's Blog",
+	description = "Web Development, Video Games, Technology, and more.",
+	ogTitle = title,
+	ogDescription = description,
+	ogImage = "https://austincaron.com/og-image.png",
+	ogUrl = "https://austincaron.com",
+	canonicalUrl = ogUrl,
+} = Astro.props as Props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&display=swap" rel="stylesheet">
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:title" content={ogTitle || title} />
+		<meta property="og:description" content={ogDescription || description} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:url" content={ogUrl} />
+		<meta property="og:type" content="website" />
+		
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		{ogImage && <meta name="twitter:image" content={ogImage} />}
+		{ogTitle && <meta name="twitter:title" content={ogTitle} />}
+		{ogDescription && <meta name="twitter:description" content={ogDescription} />}
+
+		
+		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+		<slot name="head" />
+	</head>
+	<body class="min-h-screen flex flex-col m-0 p-0">
+		<header class="header">
+      <nav class="flex items-center justify-between p-4 max-w-[90%] mx-auto">
+        <a href="/" class="nav-home">Austin</a>
+        <NavButton client:load />
+				<NavMenu client:load />
+      </nav>
+    </header>
+    <slot />
+	</body>
+</html>
+<style>
+	.nav-home {
+		font-size: 22px;
+		font-weight: bold;
+		font-family: var(--font-sans);
+		color: var(--color-text-primary);
+	}
+
+	@media screen and (min-width: 640px) {
+		.nav-home {
+			font-size: 32px;
+		}
+	}
+
+</style>

@@ -4,6 +4,9 @@ import {structureTool} from 'sanity/structure'
 import { post } from './schema/post'
 import { category } from './schema/category'
 import { seo } from './schema/seo'
+import { heroBlock } from './schema/blocks/heroBlock'
+import { textBlock } from './schema/blocks/textBlock'
+import { imageBlock } from './schema/blocks/imageBlock'
 
 export default defineConfig({
   name: 'project-name',
@@ -15,7 +18,10 @@ export default defineConfig({
     types: [
       post,
       category,
-      seo
+      seo,
+      heroBlock,
+      textBlock,
+      imageBlock
     ],
   },
 })

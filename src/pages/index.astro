@@ -1,17 +1,201 @@
 ---
+import { sanityClient } from "../lib/sanity";
+import MainLayout from "../layouts/MainLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import CategoryTicker from "../components/CategoryTicker.vue";
+import HomeFilters from "../components/HomeFilters.vue";
 
+interface Post {
+  _id: string;
+  slug: { current: string };
+  heroBlock?: {
+    title: string;
+    subtitle: string;
+    publishedDate: string;
+    image: any;
+  };
+  categoryTitle: string;
+  categorySlug: string;
+}
+
+interface Category {
+  _id: string;
+  title: string;
+  slug: { current: string };
+}
+
+const posts = await sanityClient.fetch(`
+  *[_type == "post"] | order(_createdAt desc) {
+    _id,
+    slug,
+    "heroBlock": pageBlocks[_type == "heroBlock"][0],
+    "categoryTitle": category->title,
+    "categorySlug": category->slug.current
+  }
+`);
+
+const categories = await sanityClient.fetch(`
+  *[_type == "category"] | order(title asc) {
+    _id,
+    title,
+    slug
+  }
+`);
+
+const blogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: "Austin Caron's Blog",
+  description: 'Web Development, Video Games, Technology, and more.',
+  url: 'https://austincaron.com',
+  author: { '@type': 'Person', name: 'Austin Caron' },
+  blogPost: posts.map((post: Post) => ({
+    '@type': 'BlogPosting',
+    headline: post.heroBlock?.title,
+    description: post.heroBlock?.subtitle,
+    datePublished: post.heroBlock?.publishedDate,
+    author: { '@type': 'Person', name: 'Austin Caron' },
+    url: `https://austincaron.com/posts/${post.slug.current}`,
+  })),
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout>
+  <main class="flex-1 flex flex-col sm:mt-4">
+    {categories.length > 0 && (
+      <CategoryTicker
+        client:load
+        categories={categories}
+      />
+    )}
+
+    <section class="text-(--color-text-primary) description-section sm:mt-auto mb-6">
+      <div class="w-full text-[2rem] font-semibold px-2 leading-tight my-2 description-header">
+        <h1 class="inline">Pixels & Pull Requests.</h1>
+        <span class="inline">An intersection between creativity and code.</span>
+      </div>
+      <div class="mb-4 px-2 description-content">
+        <p class="text-base leading-tight mb-4">Subsequently the most interesting and boring things you'll ever read about. Join me in exploring the culture of video games, web development, history, technology, and more.</p>
+        <div class="flex gap-2 overflow-x-auto w-full">
+          <HomeFilters client:load categories={categories} />
+        </div>
+      </div>
+    </section>
+
+
+    <section aria-label="Blog Posts" class="mt-auto sm:mt-0 w-full mb-4">
+      <div class="post-swiper swiper" id="post-swiper">
+        <div class="swiper-wrapper" id="swiper-wrapper">
+          {posts.map((post: Post) => (
+            <article class="swiper-slide" data-category={post.categorySlug}>
+              <PostCard post={post} />
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="application/ld+json" set:html={JSON.stringify(blogSchema)}></script>
+</MainLayout>
+
+<script>
+  import Swiper from 'swiper';
+  import 'swiper/css';
+  import { gsap } from 'gsap';
+  import { selectedCategory } from '../store.js';
+
+  const allSlides: { el: HTMLElement; category: string }[] = Array.from(
+    document.querySelectorAll<HTMLElement>('#swiper-wrapper .swiper-slide')
+  ).map((el) => ({ el, category: el.dataset.category ?? '' }));
+
+  function createSwiper() {
+    return new Swiper('#post-swiper', {
+      slidesPerView: 1.1,
+      spaceBetween: 10,
+      slidesOffsetBefore: 10,
+      slidesOffsetAfter: 10,
+      grabCursor: true,
+      breakpoints: {
+        640: {
+          slidesPerView: 1.75,
+          spaceBetween: 15,
+          slidesOffsetBefore: 20,
+          slidesOffsetAfter: 20,
+        },
+        1024: {
+          slidesPerView: 3.2,
+        },
+        1440: {
+          slidesPerView: 3.75,
+        },
+        1700: {
+          slidesPerView: 5,
+          spaceBetween: 10,
+        },
+        1950: {
+          slidesPerView: 4.25,
+          spaceBetween: 15,
+        },
+      },
+    });
+  }
+
+  let swiperInstance = createSwiper();
+
+  selectedCategory.subscribe(async (slug) => {
+    const swiperWrapper = document.getElementById('swiper-wrapper')!;
+
+    await gsap.to(swiperWrapper, { opacity: 0, duration: 0.15, ease: 'power2.out' });
+
+    swiperInstance.destroy(true, true);
+    swiperWrapper.innerHTML = '';
+
+    const filtered = slug === 'all'
+      ? allSlides
+      : allSlides.filter((s) => s.category === slug);
+
+    filtered.forEach(({ el }) => swiperWrapper.appendChild(el));
+
+    swiperInstance = createSwiper();
+
+    gsap.to(swiperWrapper, { opacity: 1, duration: 0.15, ease: 'power2.in' });
+  });
+</script>
+
+<style>
+  .post-swiper {
+    width: 100%;
+  }
+
+  .post-swiper .swiper-wrapper {
+    align-items: stretch;
+  }
+
+  .post-swiper .swiper-slide {
+    height: auto;
+  }
+
+  @media screen and (min-width: 640px) {
+    .description-section {
+      padding: 0 20px;
+    }
+
+    .description-header {
+      font-size: 2.4rem;
+      width: 460px;
+    }
+
+    .description-content p {
+      width: 445px;
+    }
+  }
+
+  @media screen and (min-width: 1024px) {
+    .description-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+</style>
