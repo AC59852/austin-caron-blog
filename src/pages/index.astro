@@ -84,7 +84,7 @@ const blogSchema = {
 
 
     <section aria-label="Blog Posts" class="mt-auto sm:mt-0 w-full mb-4">
-      <div class="post-swiper swiper" id="post-swiper">
+      <div class="post-swiper swiper" id="post-swiper" style="visibility: hidden;">
         <div class="swiper-wrapper" id="swiper-wrapper">
           {posts.map((post: Post) => (
             <article class="swiper-slide" data-category={post.categorySlug}>
@@ -142,6 +142,7 @@ const blogSchema = {
   }
 
   let swiperInstance = createSwiper();
+  document.getElementById('post-swiper')!.style.visibility = 'visible';
 
   selectedCategory.subscribe(async (slug) => {
     const swiperWrapper = document.getElementById('swiper-wrapper')!;

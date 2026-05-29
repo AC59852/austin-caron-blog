@@ -1,27 +1,25 @@
 <template>
-  <header class="flex flex-col items-center">
-    <div class="flex gap-[09px] items-center">
-      <a href="/" class="text-lg font-medium text-text-primary z-4">Back</a>
-      <span class="inline-block w-2 h-2 bg-blue-primary rounded-full"></span>
-      <time class="text-lg font-medium text-text-primary">{{ formattedDate }}</time>
+  <header class="flex flex-col sm:items-center">
+    <div class="flex gap-[09px] items-center order-2 sm:order-first mt-2 mb-4 sm:mt-4 sm:mb-0">
+      <a href="/" class="text-md font-medium text-text-primary z-4 hidden sm:block">Back</a>
+      <span class="hidden sm:inline-block w-2 h-2 bg-blue-primary rounded-full"></span>
+      <time class="text-md font-medium text-text-primary">{{ formattedDate }}</time>
     </div>
-    <div>
-      <h1 class="text-center text-8xl font-bold text-text-primary" v-html="colouredTitle"></h1>
-      <h2 class="text-center text-base text-text-primary">{{ heroBlock.subtitle }}</h2>
-    </div>
-    <picture>
+    <h1 class="text-left sm:text-center text-5xl sm:text-[77px] md:text-8xl font-bold text-text-primary sm:my-[30px]" v-html="colouredTitle"></h1>
+    <h2 class="text-left sm:text-center text-base order-last sm:order-3 sm:px-[22px] lg:px-[80px] hero-sub md:text-[17px] sm:mb-[30px]">{{ heroBlock.subtitle }}</h2>
+    <picture class="order-first sm:order-last">
       <source
-        media="(min-width: 1500px)"
-        :srcset="urlForImage(heroBlock.image).width(1500).height(800).url()"
+        media="(min-width: 1200px)"
+        :srcset="urlForImage(heroBlock.image).width(1300).height(731).url()"
       />
       <source
-        media="(min-width: 768px)"
+        media="(min-width: 640px)"
         :srcset="urlForImage(heroBlock.image).width(800).height(500).url()"
       />
       <img
         :src="urlForImage(heroBlock.image).width(400).height(236).url()"
         alt="Blog Hero Image"
-        class="mt-8 rounded-md object-cover w-full h-auto"
+        class="rounded-sm object-cover w-full h-auto mb-[29px] sm:mb-0"
       >
     </picture>
   </header>
@@ -50,3 +48,15 @@ const formattedDate = computed(() => {
 });
 
 </script>
+
+<style scoped>
+  @media screen and (min-width: 1950px) {
+    h1 {
+      font-size: 93px;
+    }
+
+    h2 {
+      padding: 0 112px;
+    }
+  }
+</style>

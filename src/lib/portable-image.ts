@@ -8,14 +8,14 @@ export function renderImageBlock(block: any) {
 
   try {
     const imageUrl = urlForImage(block.image)
-      .width(800)
+      .width(1300)
       .quality(80)
       .url();
 
     const caption = block.caption ? `<figcaption>${block.caption}</figcaption>` : '';
 
     return `
-      <figure class="my-8">
+      <figure>
         <img 
           src="${imageUrl}" 
           alt="${block.altText || ''}"

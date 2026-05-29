@@ -1,11 +1,13 @@
 <template>
-  <PortableText :value="[block]" :components="components" />
+  <div class="prose prose-invert max-w-none">
+    <PortableText :value="block.content" :components="components" />
+  </div>
 </template>
 
 <script setup>
-import { PortableText } from '@portabletext/vue';
+import { PortableText } from '@portabletext/vue'
 
-const props = defineProps({
+defineProps({
   block: {
     type: Object,
     required: true
@@ -13,7 +15,6 @@ const props = defineProps({
 })
 
 const components = {
-  types: {},
   marks: {
     strong: 'strong',
     em: 'em',

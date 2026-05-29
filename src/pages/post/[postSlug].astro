@@ -1,25 +1,22 @@
 ---
-import type { GetStaticPaths } from "astro";
-import MainLayout from "../../layouts/MainLayout.astro";
-import { sanityClient } from '../../lib/sanity.ts';
-import { urlForImage } from '../../lib/url-for-image.ts';
-import BlogHero from '../../components/BlogHero.vue';
-import { renderPortableText } from '../../lib/portable-text.ts';
-import { renderImageBlock } from '../../lib/portable-image.ts';
+import type { GetStaticPaths } from 'astro'
+import MainLayout from '../../layouts/MainLayout.astro'
+import { sanityClient } from '../../lib/sanity.ts'
+import { urlForImage } from '../../lib/url-for-image.ts'
+import BlogHero from '../../components/BlogHero.vue'
+import { renderPortableText } from '../../lib/portable-text.ts'
+import { renderImageBlock } from '../../lib/portable-image.ts'
 
 export async function getStaticPaths() {
   const posts = await sanityClient.fetch(`
     *[_type == "post"] {
       "params": { "postSlug": slug.current }
     }
-  `);
-
-  return posts.map((post: any) => ({
-    params: post.params,
-  }));
+  `)
+  return posts.map((post: any) => ({ params: post.params }))
 }
 
-const { postSlug } = Astro.params;
+const { postSlug } = Astro.params
 
 const post = await sanityClient.fetch(`
   *[_type == "post" && slug.current == $slug][0] {
@@ -30,32 +27,21 @@ const post = await sanityClient.fetch(`
       _type,
       _key,
       ...,
-      _type == "textBlock" => {
-        content
-      },
-      _type == "imageBlock" => {
-        image,
-        caption,
-        altText
-      }
+      _type == "textBlock" => { content },
+      _type == "imageBlock" => { image, caption, altText }
     },
     "categoryTitle": category->title,
     "categorySlug": category->slug.current,
-    seo {
-      metaTitle,
-      metaDescription,
-      ogImage
-    }
+    seo { metaTitle, metaDescription, ogImage }
   }
-`, { slug: postSlug });
+`, { slug: postSlug })
 
-
-  const metaTitle = post.seo?.metaTitle || post.heroBlock?.title;
-  const metaDescription = post.seo?.metaDescription || post.heroBlock?.subtitle;
-  const ogImage = post.seo?.ogImage ? urlForImage(post.seo.ogImage).width(1200).height(630).url() : urlForImage(post.heroBlock.image).width(1200).height(630).url();
-  const canonicalUrl = `https://austincaron.com/post/${post.slug.current}`;
-  const postUrl = `https://austincaron.com/post/${post.slug.current}`;
-
+const metaTitle = post.seo?.metaTitle || post.heroBlock?.title
+const metaDescription = post.seo?.metaDescription || post.heroBlock?.subtitle
+const ogImage = post.seo?.ogImage
+  ? urlForImage(post.seo.ogImage).width(1200).height(630).url()
+  : urlForImage(post.heroBlock.image).width(1200).height(630).url()
+const canonicalUrl = `https://austincaron.com/post/${post.slug.current}`
 ---
 
 <MainLayout
@@ -64,28 +50,49 @@ const post = await sanityClient.fetch(`
   ogTitle={metaTitle}
   ogDescription={metaDescription}
   ogImage={ogImage}
-  ogUrl={postUrl}
+  ogUrl={canonicalUrl}
   canonicalUrl={canonicalUrl}
 >
-  <article class="max-w-[1500px] mx-auto">
-    <BlogHero
-      heroBlock={post.heroBlock}
-    />
-    {post.pageBlocks.map((block: any) => {
-  if (block._type === 'imageBlock') {
-    console.log('Image block:', JSON.stringify(block, null, 2));
-    console.log('Block.image:', JSON.stringify(block.image, null, 2));
-  }
-  return (
-    <>
-      {block._type === 'textBlock' && block.content && (
-        <div set:html={renderPortableText(block.content)}></div>
-      )}
-      {block._type === 'imageBlock' && block.image && (
-        <div set:html={renderImageBlock(block)}></div>
-      )}
-    </>
-  );
-})}
+  <article class="max-w-[1300px] mx-auto px-3 flex flex-col gap-[29px] sm:gap-[45px] mb-10">
+    <BlogHero heroBlock={post.heroBlock} />
+
+    {post.pageBlocks.map((block: any) => (
+      <>
+        {block._type === 'textBlock' && block.content && (
+          <div class="max-w-none content content-text flex flex-col gap-[8px]" set:html={renderPortableText(block.content)} />
+        )}
+        {block._type === 'imageBlock' && block.image && (
+          <div set:html={renderImageBlock(block)} />
+        )}
+      </>
+    ))}
   </article>
 </MainLayout>
+
+<style>
+  .content :global(h2) {
+    font-size: 1.65rem;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+  }
+
+  .content :global(h2:not(:first-child)) {
+    margin-top: 13px; /* 39px block gap - 8px flex gap already there */
+  }
+
+  @media (min-width: 640px) {
+    .content :global(h2:not(:first-child)) {
+      margin-top: 27px; /* 45px block gap - 8px flex gap already there */
+    }
+
+    .content :global(h2) {
+      font-size: 2rem;
+    }
+
+    .content :global(p) {
+      font-size: 17px;
+    }
+  }
+</style>
