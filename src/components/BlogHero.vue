@@ -8,8 +8,8 @@
       <span v-if="readingMinutes" class="text-md font-medium text-text-primary">{{ readingMinutes }} min read</span>
     </div>
     <h1 class="text-left sm:text-center text-5xl sm:text-[77px] md:text-8xl font-bold text-text-primary sm:my-[30px]" v-html="colouredTitle"></h1>
-    <h2 class="text-left sm:text-center text-base order-last sm:order-3 sm:px-[22px] lg:px-[80px] hero-sub md:text-[17px] sm:mb-[30px]">{{ heroBlock.subtitle }}</h2>
-    <picture class="order-first sm:order-last">
+    <h2 class="text-left sm:text-center text-base order-last sm:order-3 sm:px-[22px] lg:px-[80px] hero-sub md:text-[1.1rem] sm:mb-[30px]">{{ heroBlock.subtitle }}</h2>
+    <picture class="order-first sm:order-last w-full">
       <source
         media="(min-width: 1200px)"
         :srcset="urlForImage(heroBlock.image).width(1300).height(731).url()"

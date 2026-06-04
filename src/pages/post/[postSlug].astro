@@ -212,43 +212,6 @@ const formattedDate = publishedTime
   <article class="max-w-[1300px] mx-auto px-3 flex flex-col gap-[29px] sm:gap-[45px] mb-10">
     <BlogHero heroBlock={post.heroBlock} readingMinutes={readingMinutes} />
 
-    <!--
-      Post meta bar: category + reading time + date.
-      
-      Reading time: Users who know how long a post takes are more likely to
-      finish it, improving dwell time — an indirect ranking signal.
-
-      <time datetime="..."> provides machine-readable date context to
-      crawlers even when the visible date format changes.
-
-      rel="category tag" on the category link signals to crawlers that
-      this link represents taxonomic classification, not a standard
-      navigational link — used by some news aggregators for categorisation.
-    -->
-    <!-- {(post.categoryTitle || readingMinutes) && (
-      <div class="post-meta flex items-center gap-3 text-sm px-1">
-        {post.categoryTitle && (
-          <a
-            href={'/'}
-            class="post-meta__category"
-            rel="category tag"
-          >
-            {post.categoryTitle}
-          </a>
-        )}
-        {post.categoryTitle && <span aria-hidden="true">·</span>}
-        <span class="post-meta__reading-time">{readingMinutes} min read</span>
-        {formattedDate && (
-          <>
-            <span aria-hidden="true">·</span>
-            <time datetime={publishedTime} class="post-meta__date">
-              {formattedDate}
-            </time>
-          </>
-        )}
-      </div>
-    )} -->
-
     {post.pageBlocks.map((block: any) => (
       <>
         {block._type === 'textBlock' && block.content && (
@@ -302,11 +265,16 @@ const formattedDate = publishedTime
     }
 
     .content :global(h2) {
-      font-size: 2rem;
+      font-size: 2.1rem;
+      width: 93%;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .content :global(p) {
-      font-size: 17px;
+      font-size: 1.1rem;
+      width: 93%;
+      margin: 0 auto
     }
   }
 </style>
