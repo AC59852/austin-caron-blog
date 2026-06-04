@@ -1,5 +1,4 @@
 ---
-import type { GetStaticPaths } from 'astro'
 import MainLayout from '../../layouts/MainLayout.astro'
 import { sanityClient } from '../../lib/sanity.ts'
 import { urlForImage } from '../../lib/url-for-image.ts'
@@ -9,13 +8,9 @@ import { renderImageBlock } from '../../lib/portable-image.ts'
 import { estimateReadingTime } from '../../lib/reading-time.ts'
 
 // ─── Site Constant ─────────────────────────────────────────────────────────────
-// Keep in sync with MainLayout.astro and index.astro.
-// Future improvement: centralise in src/config/site.ts
 const SITE_URL = "https://blog.austincaron.com";
 
 // ─── Static Paths ──────────────────────────────────────────────────────────────
-// Fetches only the slug field needed for path generation — keeps the build
-// fast by not pulling full post data at this stage.
 export async function getStaticPaths() {
   const posts = await sanityClient.fetch(`
     *[_type == "post"] {
@@ -28,16 +23,6 @@ export async function getStaticPaths() {
 const { postSlug } = Astro.params
 
 // ─── Post Data ─────────────────────────────────────────────────────────────────
-// NEW: _createdAt and _updatedAt are Sanity system fields — always present
-// on every document, no schema changes required.
-//
-//   _createdAt → fallback for datePublished when heroBlock.publishedDate is unset
-//   _updatedAt → drives dateModified + article:modified_time Open Graph tag
-//
-// dateModified is used by Google Discover's freshness algorithm to decide
-// whether updated content should be re-surfaced to new audiences.
-//
-// NEW: seo.noIndex is fetched so post pages can suppress indexing from Sanity.
 const post = await sanityClient.fetch(`
   *[_type == "post" && slug.current == $slug][0] {
     _id,
@@ -64,33 +49,17 @@ const metaDescription = post.seo?.metaDescription || post.heroBlock?.subtitle
 const ogImage = post.seo?.ogImage
   ? urlForImage(post.seo.ogImage).width(1200).height(630).url()
   : urlForImage(post.heroBlock.image).width(1200).height(630).url()
-
-// FIXED: was hardcoded to "austincaron.com" — now uses SITE_URL constant.
 const canonicalUrl = `${SITE_URL}/post/${post.slug.current}`
-
-// heroBlock.publishedDate is the author-controlled display date.
-// _createdAt is the Sanity system fallback — ensures this field is never empty.
 const publishedTime = post.heroBlock?.publishedDate ?? post._createdAt
 const modifiedTime  = post._updatedAt
 
 // ─── Reading Time ──────────────────────────────────────────────────────────────
-// Computed at build time from pageBlocks. Result is used in:
-//   1. The post-meta bar UI (improves dwell time → indirect ranking signal)
-//   2. JSON-LD timeRequired field (ISO 8601 duration)
 const { minutes: readingMinutes, iso: readingTimeIso } = estimateReadingTime(post.pageBlocks)
 
 // ─── Structured Data ───────────────────────────────────────────────────────────
 
 // BlogPosting Schema
 // ─────────────────
-// This was missing entirely from the previous implementation — the single
-// largest gap in the site's structured data. Google requires headline, image,
-// datePublished, and author to make a page eligible for article rich results.
-//
-// The @id values use fragment identifiers (#article, #author) to create
-// cross-document references. The author @id matches the Person entity
-// declared in MainLayout.astro's WebSite schema, so Google can confirm
-// this post belongs to Austin Caron without re-parsing the Person definition.
 const articleSchema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
@@ -114,8 +83,6 @@ const articleSchema = {
     name: "Austin Caron",
     url: SITE_URL,
   },
-  // For a self-published blog, publisher === author. Using Person is correct.
-  // Using Organization would be inaccurate and could create entity confusion.
   publisher: {
     "@type": "Person",
     "@id": `${SITE_URL}/#author`,
@@ -150,11 +117,6 @@ const articleSchema = {
 
 // BreadcrumbList Schema
 // ─────────────────────
-// Breadcrumb trails appear in Google SERPs as path context below the URL:
-//   blog.austincaron.com › Video Games › Post Title
-//
-// Studies consistently show 15–30% CTR improvement when breadcrumbs appear.
-// The position values must be sequential integers starting at 1.
 const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -246,7 +208,6 @@ const formattedDate = publishedTime
     color: var(--color-text-secondary, #888);
   }
 
-  /* Content block styles — unchanged from original */
   .content :global(h2) {
     font-size: 1.65rem;
     font-weight: 600;
@@ -256,12 +217,12 @@ const formattedDate = publishedTime
   }
 
   .content :global(h2:not(:first-child)) {
-    margin-top: 13px; /* 39px block gap - 8px flex gap already there */
+    margin-top: 13px;
   }
 
   @media (min-width: 640px) {
     .content :global(h2:not(:first-child)) {
-      margin-top: 27px; /* 45px block gap - 8px flex gap already there */
+      margin-top: 27px;
     }
 
     .content :global(h2) {

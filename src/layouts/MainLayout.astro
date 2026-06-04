@@ -112,10 +112,10 @@ const websiteSchema = {
     // Each one strengthens Google's confidence that "Austin Caron" the blog
     // author is the same person as your GitHub, YouTube, and LinkedIn accounts.
     sameAs: [
-      // "https://github.com/YOUR_GITHUB_HANDLE",
-      // "https://twitter.com/YOUR_TWITTER_HANDLE",
-      // "https://www.linkedin.com/in/YOUR_LINKEDIN_HANDLE",
-      // "https://www.youtube.com/@YOUR_YOUTUBE_HANDLE",
+      "https://github.com/AC59852",
+      "https://twitter.com/austincaron_",
+      "https://www.linkedin.com/in/austincaron/",
+      "https://www.youtube.com/@AustinCaron",
     ],
   },
 };
@@ -128,9 +128,6 @@ const websiteSchema = {
     <meta name="generator" content={Astro.generator} />
 
     <!-- ─── Favicons ─────────────────────────────────────────────────────────
-      apple-touch-icon.png (180×180px) is used when a user saves your site
-      to their iOS home screen. Create one and drop it in /public/.
-      Without it, iOS uses a screenshot of the page instead of a clean icon.
     -->
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -138,19 +135,9 @@ const websiteSchema = {
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Pixels & Pull Requests" />
     <link rel="manifest" href="/site.webmanifest" />
-    <!--
-      theme-color tints the browser chrome on Android (Chrome) and Safari 15+.
-      Replace #000000 with your site's primary background colour.
-    -->
     <meta name="theme-color" content="#86B4FA" />
 
     <!-- ─── Primary Meta ──────────────────────────────────────────────────────
-      The robots directive was previously absent (relying on implicit defaults).
-      Explicitly setting max-snippet:-1, max-image-preview:large, and
-      max-video-preview:-1 tells Google it can use:
-        - Any snippet length  → more SERP real estate
-        - Large image previews → richer Image Search and Discover cards
-        - Full video previews  → relevant as your YouTube embeds grow
     -->
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -161,20 +148,10 @@ const websiteSchema = {
     }
 
     <!-- ─── Canonical ────────────────────────────────────────────────────────
-      The canonical tag tells Google which URL to credit with all ranking
-      signals when the same (or similar) content is accessible at multiple URLs.
     -->
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
     <!-- ─── Open Graph ───────────────────────────────────────────────────────
-      Changes from the previous implementation:
-        • og:type is now a prop — post pages pass "article", others use "website"
-        • og:site_name added — shows blog name (not domain) in share cards
-        • og:locale: en_CA signals Canadian-English content
-        • og:image:width/height declared — crawlers render cards without
-          prefetching the full image, speeding up social preview generation
-        • og:image:alt added — accessibility context and fallback label
-        • Article-specific tags conditionally emitted (see below)
     -->
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
@@ -186,13 +163,6 @@ const websiteSchema = {
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogTitle} />
-
-    <!--
-      Article-specific Open Graph tags — only emitted on post pages.
-      article:published_time is a primary input for Google Discover's
-      freshness algorithm. Without it, Discover cannot reliably assess
-      when your content was created, reducing its chance of being surfaced.
-    -->
     {ogType === "article" && articlePublishedTime && (
       <meta property="article:published_time" content={articlePublishedTime} />
     )}
@@ -207,10 +177,6 @@ const websiteSchema = {
     )}
 
     <!-- ─── Twitter / X ───────────────────────────────────────────────────────
-      twitter:site and twitter:creator link content to your X account.
-      This enables the "Follow" button on X share cards and is cross-referenced
-      by Google as a soft authorship signal for E-E-A-T.
-      twitter:image:alt is required for X's accessibility compliance.
     -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content={TWITTER_HANDLE} />
@@ -221,10 +187,6 @@ const websiteSchema = {
     <meta name="twitter:image:alt" content={ogTitle} />
 
     <!-- ─── Fonts ─────────────────────────────────────────────────────────────
-      The preconnect hints were already present — they cut DNS + TLS handshake
-      time before the browser encounters the Google Fonts stylesheet.
-      This is kept as-is. See the SEO audit for self-hosting alternatives
-      (Fontsource) that eliminate the cross-origin request entirely.
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -234,27 +196,14 @@ const websiteSchema = {
     />
 
     <!-- ─── Structured Data: WebSite + Person ─────────────────────────────────
-      Present on every page. The @id values on WebSite and Person act as
-      stable cross-reference anchors for the per-page BlogPosting schemas
-      injected via the head slot in _postSlug_.astro.
-      Google uses this entity graph to understand the site structure and
-      build an authorship profile that influences E-E-A-T scoring.
     -->
     <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
-
-    <!-- Per-page structured data and additional <head> content goes here.
-         Used by _postSlug_.astro to inject BlogPosting and BreadcrumbList. -->
     <slot name="head" />
   </head>
 
   <body class="min-h-screen flex flex-col m-0 p-0">
     <header class="header">
       <nav class="flex items-center justify-between p-4 max-w-[90%] mx-auto">
-        <!--
-          aria-label gives screen readers a meaningful description of this
-          navigation landmark, improving accessibility scores (which Google
-          uses as a quality signal via Core Web Vitals' accessibility audits).
-        -->
         <a href="/" class="nav-home" aria-label="Pixels & Pull Requests — go to homepage">P&PR</a>
         <NavButton client:load />
         <NavMenu client:load />
