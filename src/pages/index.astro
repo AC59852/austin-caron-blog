@@ -5,8 +5,15 @@ import PostCard from "../components/PostCard.astro";
 import CategoryTicker from "../components/CategoryTicker.vue";
 import HomeFilters from "../components/HomeFilters.vue";
 
+// ─── Site Constant ─────────────────────────────────────────────────────────────
+// Keep in sync with MainLayout.astro and _postSlug_.astro.
+// Future improvement: centralise in src/config/site.ts
+const SITE_URL = "https://blog.austincaron.com";
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
 interface Post {
   _id: string;
+  _createdAt: string;  // NEW: needed for datePublished fallback in blogSchema
   slug: { current: string };
   heroBlock?: {
     title: string;
@@ -24,11 +31,21 @@ interface Category {
   slug: { current: string };
 }
 
+// ─── Data Fetching ─────────────────────────────────────────────────────────────
+// NEW: Added _createdAt to the posts query.
+// It serves as a fallback for heroBlock.publishedDate in the blogSchema below,
+// ensuring datePublished is never undefined on any BlogPosting entry.
 const posts = await sanityClient.fetch(`
   *[_type == "post"] | order(_createdAt desc) {
     _id,
+    _createdAt,
     slug,
-    "heroBlock": pageBlocks[_type == "heroBlock"][0],
+    "heroBlock": pageBlocks[_type == "heroBlock"][0] {
+      title,
+      subtitle,
+      publishedDate,
+      image
+    },
     "categoryTitle": category->title,
     "categorySlug": category->slug.current
   }
@@ -42,25 +59,82 @@ const categories = await sanityClient.fetch(`
   }
 `);
 
+// ─── Structured Data ───────────────────────────────────────────────────────────
+// Blog Schema
+// ───────────
+// Changes from the previous version:
+//
+//   1. SITE_URL: was "https://austincaron.com" — now uses the SITE_URL constant.
+//      Wrong domain in JSON-LD means Google's structured data parser maps
+//      all your articles to a domain where they don't live.
+//
+//   2. @id added: "@id": `${SITE_URL}/#blog`
+//      This @id is referenced by every BlogPosting's isPartOf field in
+//      _postSlug_.astro, completing the entity hierarchy:
+//        WebSite (#website) → Blog (#blog) → BlogPosting (#article)
+//
+//   3. blogPost URL FIXED: was "posts/" (plural) — now "post/" (singular),
+//      matching the actual route in _postSlug_.astro.
+//      Schema pointing to 404 URLs is silently ignored by Google.
+//
+//   4. inLanguage added: "en-CA" — consistent with og:locale in MainLayout.
+//
+//   5. datePublished fallback: heroBlock.publishedDate ?? post._createdAt
+//      Ensures no BlogPosting entry has an undefined datePublished.
 const blogSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Blog',
-  name: "Austin Caron's Blog",
-  description: 'Web Development, Video Games, Technology, and more.',
-  url: 'https://austincaron.com',
-  author: { '@type': 'Person', name: 'Austin Caron' },
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "@id": `${SITE_URL}/#blog`,
+  name: "Pixels & Pull Requests",
+  description: "Web development, video games, technology, pop culture, and history — written with personality by Austin Caron.",
+  url: SITE_URL,
+  inLanguage: "en-CA",
+  author: {
+    "@type": "Person",
+    // Cross-references the Person entity defined in MainLayout's WebSite schema.
+    "@id": `${SITE_URL}/#author`,
+    name: "Austin Caron",
+    url: SITE_URL,
+  },
   blogPost: posts.map((post: Post) => ({
-    '@type': 'BlogPosting',
+    "@type": "BlogPosting",
     headline: post.heroBlock?.title,
     description: post.heroBlock?.subtitle,
-    datePublished: post.heroBlock?.publishedDate,
-    author: { '@type': 'Person', name: 'Austin Caron' },
-    url: `https://austincaron.com/posts/${post.slug.current}`,
+    datePublished: post.heroBlock?.publishedDate ?? post._createdAt,
+    author: {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#author`,
+      name: "Austin Caron",
+    },
+    // FIXED: route is "post/" (singular), not "posts/" (plural).
+    url: `${SITE_URL}/post/${post.slug.current}`,
   })),
 };
+
+// ─── Page Meta ─────────────────────────────────────────────────────────────────
+// The previous implementation passed no title or description to <MainLayout>,
+// causing the homepage to display the generic fallback values.
+//
+// The homepage deserves its own optimised meta:
+//   - Title: includes the blog name AND author name for brand + person queries
+//   - Description: covers all topic areas (games, dev, history, etc.) to match
+//     a wider range of navigational and exploratory search queries
+const pageTitle = "Pixels & Pull Requests — Austin Caron";
+const pageDescription =
+  "Web development, video games, technology, pop culture, and history. A personal blog by Austin Caron exploring the intersection of creativity and code.";
 ---
 
-<MainLayout>
+<MainLayout title={pageTitle} description={pageDescription}>
+  <!--
+    Move Blog JSON-LD into <head> via the named slot.
+    Previously it was placed at the end of the default slot (in <body>).
+    Body placement is technically valid per Google's spec, but <head> is
+    the conventional and cleaner location.
+  -->
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(blogSchema)} />
+  </Fragment>
+
   <main class="flex-1 flex flex-col sm:mt-4">
     {categories.length > 0 && (
       <CategoryTicker
@@ -71,7 +145,7 @@ const blogSchema = {
 
     <section class="text-(--color-text-primary) description-section sm:mt-auto mb-6">
       <div class="w-full text-[2rem] font-semibold px-2 leading-tight my-2 description-header">
-        <h1 class="inline">Pixels & Pull Requests.</h1>
+        <h1 class="inline">Pixels &amp; Pull Requests.</h1>
         <span class="inline">An intersection between creativity and code.</span>
       </div>
       <div class="mb-4 px-2 description-content">
@@ -82,7 +156,17 @@ const blogSchema = {
       </div>
     </section>
 
+    <!--
+      NOTE: The Swiper container initialises with visibility: hidden to prevent
+      a flash of unstyled content, then is revealed by JavaScript. Googlebot
+      renders JavaScript and will process the revealed content.
 
+      If you ever notice post cards not being indexed in Search Console, the
+      fix is to change the initial state from visibility: hidden → opacity: 0.
+      Crawlers treat opacity: 0 as "rendered and present in layout", whereas
+      visibility: hidden more explicitly signals removed from the visual layer.
+      Both are ultimately fine for Googlebot, but opacity: 0 is the safer bet.
+    -->
     <section aria-label="Blog Posts" class="mt-auto sm:mt-0 w-full mb-4">
       <div class="post-swiper swiper" id="post-swiper" style="visibility: hidden;">
         <div class="swiper-wrapper" id="swiper-wrapper">
@@ -95,8 +179,6 @@ const blogSchema = {
       </div>
     </section>
   </main>
-
-  <script type="application/ld+json" set:html={JSON.stringify(blogSchema)}></script>
 </MainLayout>
 
 <script>

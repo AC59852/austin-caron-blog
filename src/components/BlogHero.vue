@@ -2,8 +2,10 @@
   <header class="flex flex-col sm:items-center">
     <div class="flex gap-[09px] items-center order-2 sm:order-first mt-2 mb-4 sm:mt-4 sm:mb-0">
       <a href="/" class="text-md font-medium text-text-primary z-4 hidden sm:block">Back</a>
-      <span class="hidden sm:inline-block w-2 h-2 bg-blue-primary rounded-full"></span>
+      <span class="hidden sm:inline-block w-[6px] h-[6px] bg-blue-primary rounded-full"></span>
       <time class="text-md font-medium text-text-primary">{{ formattedDate }}</time>
+      <span v-if="readingMinutes" class="inline-block w-[6px] h-[6px] bg-blue-primary rounded-full"></span>
+      <span v-if="readingMinutes" class="text-md font-medium text-text-primary">{{ readingMinutes }} min read</span>
     </div>
     <h1 class="text-left sm:text-center text-5xl sm:text-[77px] md:text-8xl font-bold text-text-primary sm:my-[30px]" v-html="colouredTitle"></h1>
     <h2 class="text-left sm:text-center text-base order-last sm:order-3 sm:px-[22px] lg:px-[80px] hero-sub md:text-[17px] sm:mb-[30px]">{{ heroBlock.subtitle }}</h2>
@@ -33,6 +35,10 @@ const props = defineProps({
   heroBlock: {
     type: Object,
     required: true
+  },
+  readingMinutes: {
+    type: Number,
+    required: false
   }
 })
 
