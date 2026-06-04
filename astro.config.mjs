@@ -20,7 +20,7 @@ export default defineConfig({
     apiVersion: '2026-03-01',
     studioBasePath: '/admin',
     useCdn: false
-  }), react(), sitemap()],
+  }), react(), sitemap({ filter: (page) => !page.includes('/admin') })],
 
   vite: {
     plugins: [tailwindcss()]
