@@ -132,14 +132,17 @@ const websiteSchema = {
       to their iOS home screen. Create one and drop it in /public/.
       Without it, iOS uses a screenshot of the page instead of a clean icon.
     -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Pixels & Pull Requests" />
+    <link rel="manifest" href="/site.webmanifest" />
     <!--
       theme-color tints the browser chrome on Android (Chrome) and Safari 15+.
       Replace #000000 with your site's primary background colour.
     -->
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#383838" />
 
     <!-- ─── Primary Meta ──────────────────────────────────────────────────────
       The robots directive was previously absent (relying on implicit defaults).
@@ -252,7 +255,7 @@ const websiteSchema = {
           navigation landmark, improving accessibility scores (which Google
           uses as a quality signal via Core Web Vitals' accessibility audits).
         -->
-        <a href="/" class="nav-home" aria-label="Pixels & Pull Requests — go to homepage">P&Pr</a>
+        <a href="/" class="nav-home" aria-label="Pixels & Pull Requests — go to homepage">P&PR</a>
         <NavButton client:load />
         <NavMenu client:load />
       </nav>
