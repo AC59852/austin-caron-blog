@@ -1,5 +1,19 @@
 import { toHTML } from '@portabletext/to-html';
 
+// Replaces the final space in the last text node of an HTML string with a
+// non-breaking space, preventing a single orphan word on the last line.
+// Splits on tag tokens so it never accidentally matches inside an attribute.
+function preventOrphan(html: string): string {
+  const parts = html.split(/(<[^>]+>)/);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (!parts[i].startsWith('<') && parts[i].includes(' ')) {
+      parts[i] = parts[i].replace(/ (?=[^ ]*$)/, '\u00A0');
+      break;
+    }
+  }
+  return parts.join('');
+}
+
 export function renderPortableText(blocks: any[]) {
   return toHTML(blocks, {
     components: {
@@ -7,7 +21,7 @@ export function renderPortableText(blocks: any[]) {
         h1: ({ children }: any) => `<h1>${children}</h1>`,
         h2: ({ children }: any) => `<h2>${children}</h2>`,
         h3: ({ children }: any) => `<h3>${children}</h3>`,
-        normal: ({ children }: any) => `<p>${children}</p>`,
+        normal: ({ children }: any) => `<p>${preventOrphan(children)}</p>`,
         blockquote: ({ children }: any) => `<blockquote>${children}</blockquote>`,
       },
       marks: {
